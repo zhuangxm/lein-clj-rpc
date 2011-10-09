@@ -11,7 +11,7 @@
    serveraddress and serverport can be optional
    the default values are 127.0.0.1 and 8080
    this example will generate a file name api.clj under the
-   src/com/basecity/ direction"
+   src/com/basecity/ directory"
   ([project]
      (println (help-for "gen-stub") ))
   ([project ns]
