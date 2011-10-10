@@ -11,23 +11,24 @@
 ;;template file name the output file
 (defonce template-file "api_stub.clj")
 
+(defn- slurp-resource*
+  [resource-name]
+    (-> (.getContextClassLoader (Thread/currentThread))
+        (.getResourceAsStream resource-name)
+        (java.io.InputStreamReader.)
+        (slurp)))
+
 ;;From the maginalia source: http://fogus.me/fun/marginalia/
 (defn slurp-resource
   [resource-name]
   (try
-    (-> (.getContextClassLoader (Thread/currentThread))
-        (.getResourceAsStream resource-name)
-        (java.io.InputStreamReader.)
-        (slurp))
+    (slurp-resource* resource-name)
     (catch java.lang.NullPointerException npe
       (println (str "Could not locate resources at " resource-name))
       (println "    ... attempting to fix.")
       (let [resource-name (str "./resources/" resource-name)]
         (try
-          (-> (.getContextClassLoader (Thread/currentThread))
-              (.getResourceAsStream resource-name)
-              (java.io.InputStreamReader.)
-              (slurp))
+          (slurp-resource* resource-name)
           (catch java.lang.NullPointerException npe
             (println (str "    STILL could not locate resources at " resource-name ". Giving up!"))))))))
 
