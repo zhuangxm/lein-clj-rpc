@@ -38,18 +38,23 @@
         last-pos (- (.length args-str) 1)]
     (.substring args-str 1 last-pos)))
 
+(defn- replace-symbol
+  [str replace-map]
+  (reduce (fn [s [sym replacement]] (string/replace s sym replacement))
+          str replace-map))
+
 (defn replace-parameters
   "replace all the fn-name and args in the template with fn and args"
   [str fn-name args]
   (let [apply-str (if (= (symbol "&") (last (drop-last args)))
                 "apply "
                 "")
-        changed-args (filter #(not= % (symbol "&")) args)]
-    (-> str 
-        (string/replace "$fn-name$" fn-name)
-        (string/replace "$args$" (change-args args))
-        (string/replace "$changed-args$" (change-args changed-args))
-        (string/replace "$apply$" apply-str))))
+        to-changes (filter #(not= % (symbol "&")) args)]
+    (replace-symbol str
+                    {"$fn-name$" fn-name,
+                     "$args$" (change-args args),
+                     "$changed-args$" (change-args to-changes),
+                     "$apply$" apply-str})))
 
 (defn gen-fn-body
   "generate string of the function body"
@@ -69,11 +74,10 @@
         fn-name (:name command)
         doc (or (:doc command) "")
         doc (string/replace doc "\"" "\\\"")]
-    (-> content
-        (string/replace "$fn-name$" fn-name)
-        (string/replace "$doc$" doc)
-        (string/replace "$body$" (gen-fn-body template-path command)))))
-
+    (replace-symbol content
+                    {"$fn-name$" fn-name
+                     "$doc$" doc
+                     "$body$" (gen-fn-body template-path command)})))
 
 (defn gen-file
   "generate string of file"
